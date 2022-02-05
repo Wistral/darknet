@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <math.h>
 #include <unistd.h>
+#if defined(_WIN64) || defined(_WIN32)
+#include <winsock2.h>
+#endif
 
 int inverted = 1;
 int noi = 1;
@@ -1366,5 +1369,3 @@ void run_go(int argc, char **argv)
     else if(0==strcmp(argv[2], "test")) test_go(cfg, weights, multi);
     else if(0==strcmp(argv[2], "engine")) engine_go(cfg, weights, iters, time, temp, cpuct, anon, resign);
 }
-
-
