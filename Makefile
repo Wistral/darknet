@@ -30,7 +30,7 @@ COMMON= -Iinclude/ -Isrc/
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
 ifeq ($(OPENMP), 1) 
-CFLAGS+= -fopenmp
+CFLAGS+= -fopenmp -ffp-contract=fast  -mavx -mavx2 -msse3 -msse4.1 -msse4.2 -msse4a
 endif
 
 ifeq ($(DEBUG), 1) 
@@ -42,8 +42,8 @@ CFLAGS+=$(OPTS)
 ifeq ($(OPENCV), 1) 
 COMMON+= -DOPENCV
 CFLAGS+= -DOPENCV
-LDFLAGS+= `pkg-config --libs opencv` -lstdc++
-COMMON+= `pkg-config --cflags opencv` 
+LDFLAGS+= `pkg-config --libs opencv 2>/dev/null || pkg-config --libs opencv4` -lstdc++
+COMMON+= `pkg-config --cflags opencv 2>/dev/null || pkg-config --cflags opencv4` 
 endif
 
 ifeq ($(GPU), 1) 
@@ -56,6 +56,14 @@ ifeq ($(CUDNN), 1)
 COMMON+= -DCUDNN 
 CFLAGS+= -DCUDNN
 LDFLAGS+= -lcudnn
+endif
+
+ifneq (,$(findstring MINGW64_NT,$(shell uname)))
+  MINGW64=$(shell which x86_64-w64-mingw32-gcc)
+  ifneq ($(MINGW64),)
+    CC=$(MINGW64)
+  endif
+  LDFLAGS+= -lws2_32 -lwsock32
 endif
 
 OBJ=gemm.o utils.o cuda.o deconvolutional_layer.o convolutional_layer.o list.o image.o activations.o im2col.o col2im.o blas.o crop_layer.o dropout_layer.o maxpool_layer.o softmax_layer.o data.o matrix.o network.o connected_layer.o cost_layer.o parser.o option_list.o detection_layer.o route_layer.o upsample_layer.o box.o normalization_layer.o avgpool_layer.o layer.o local_layer.o shortcut_layer.o logistic_layer.o activation_layer.o rnn_layer.o gru_layer.o crnn_layer.o demo.o batchnorm_layer.o region_layer.o reorg_layer.o tree.o  lstm_layer.o l2norm_layer.o yolo_layer.o iseg_layer.o image_opencv.o
@@ -102,4 +110,3 @@ results:
 
 clean:
 	rm -rf $(OBJS) $(SLIB) $(ALIB) $(EXEC) $(EXECOBJ) $(OBJDIR)/*
-
